@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, MapPin } from 'lucide-react';
 
 interface SearchResult {
@@ -18,13 +18,14 @@ export default function GeocodingSearch({ onLocationSelect }: GeocodingSearchPro
     const [isSearching, setIsSearching] = useState(false);
     const [showResults, setShowResults] = useState(false);
 
-    const handleSearch = async () => {
-        if (!query.trim()) return;
+    const performSearch = async (searchQuery: string) => {
+        if (!searchQuery.trim()) return;
 
         setIsSearching(true);
+        setQuery(searchQuery);
         try {
             const response = await fetch(
-                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`
+                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5`
             );
             const data = await response.json();
             setResults(data);
@@ -35,6 +36,17 @@ export default function GeocodingSearch({ onLocationSelect }: GeocodingSearchPro
             setIsSearching(false);
         }
     };
+
+    const handleSearch = () => performSearch(query);
+
+    useEffect(() => {
+        const handleTriggerSearch = (e: CustomEvent<string>) => {
+            performSearch(e.detail);
+        };
+
+        window.addEventListener('trigger-search', handleTriggerSearch as EventListener);
+        return () => window.removeEventListener('trigger-search', handleTriggerSearch as EventListener);
+    }, []);
 
     const handleSelectResult = (result: SearchResult) => {
         const lat = parseFloat(result.lat);

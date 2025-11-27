@@ -29,11 +29,12 @@ interface DrawControlProps {
     onCreate?: (e: DrawEvent) => void;
     onUpdate?: (e: DrawEvent) => void;
     onDelete?: (e: DrawEvent) => void;
+    onMount?: (draw: any) => void;
 }
 
 // DrawControl component to integrate mapbox-gl-draw with react-map-gl
 function DrawControl(props: DrawControlProps) {
-    useControl(
+    const draw = useControl(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         () => new MapboxDraw(props) as any, // Cast to any for MapLibre compatibility
         ({ map }: { map: MapInstance }) => {
@@ -51,6 +52,12 @@ function DrawControl(props: DrawControlProps) {
         }
     );
 
+    useEffect(() => {
+        if (props.onMount && draw) {
+            props.onMount(draw);
+        }
+    }, [draw, props.onMount]);
+
     return null;
 }
 
@@ -60,10 +67,20 @@ const WMS_URL = 'https://www.wms.nrw.de/geobasis/wms_nw_dop';
 interface MapComponentProps {
     onFeaturesUpdate?: (features: Record<string, MapGeoJSONFeature>) => void;
     selectedLocation?: { lat: number; lon: number; bbox?: number[] } | null;
+    drawMode?: 'polygon' | 'rectangle' | 'circle' | 'point' | null;
+    showWMS?: boolean;
+    wmsLayer?: 'nw_dop_rgb' | 'nw_dop_cir';
 }
 
-export default function MapComponent({ onFeaturesUpdate, selectedLocation }: MapComponentProps) {
+export default function MapComponent({
+    onFeaturesUpdate,
+    selectedLocation,
+    drawMode,
+    showWMS = true,
+    wmsLayer = 'nw_dop_rgb'
+}: MapComponentProps) {
     const mapRef = useRef<ComponentRef<typeof Map>>(null);
+    const drawControlRef = useRef<any>(null);
     const [viewState, setViewState] = useState({
         longitude: 7.4653, // NRW center approx
         latitude: 51.5136,
@@ -81,10 +98,31 @@ export default function MapComponent({ onFeaturesUpdate, selectedLocation }: Map
         }
     }, [selectedLocation]);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [showWMS, setShowWMS] = useState(true);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [wmsLayer, setWmsLayer] = useState<'nw_dop_rgb' | 'nw_dop_cir'>('nw_dop_rgb');
+    // Handle draw mode changes
+    useEffect(() => {
+        if (!drawControlRef.current) return;
+
+        const draw = drawControlRef.current;
+        // MapboxDraw doesn't support 'rectangle' or 'circle' natively without plugins, 
+        // but for now we'll map them to polygon/point or just use simple_select if not supported.
+        // For a real implementation of circle/rectangle, we'd need mapbox-gl-draw-rectangle-mode etc.
+        // Here we'll stick to basic modes for the "Quick Draw" demo.
+
+        if (drawMode === 'polygon') {
+            draw.changeMode('draw_polygon');
+        } else if (drawMode === 'point') {
+            draw.changeMode('draw_point');
+        } else if (drawMode === 'rectangle') {
+            // Fallback or custom mode if available. For now, let's use polygon as fallback or just alert
+            // Since we don't have the plugin installed, we'll default to polygon for rectangle
+            draw.changeMode('draw_polygon');
+        } else if (drawMode === 'circle') {
+            // Fallback for circle
+            draw.changeMode('draw_polygon');
+        } else {
+            draw.changeMode('simple_select');
+        }
+    }, [drawMode]);
 
     // Load features from localStorage on mount
     const [features, setFeatures] = useState<Record<string, MapGeoJSONFeature>>(() => {
@@ -141,7 +179,7 @@ export default function MapComponent({ onFeaturesUpdate, selectedLocation }: Map
                 {...viewState}
                 onMove={evt => setViewState(evt.viewState)}
                 style={{ width: '100%', height: '100%' }}
-                mapStyle="https://demotiles.maplibre.org/style.json"
+                mapStyle="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
             >
                 {/* WMS Layer */}
                 {showWMS && (
@@ -180,6 +218,7 @@ export default function MapComponent({ onFeaturesUpdate, selectedLocation }: Map
                     onCreate={onUpdate}
                     onUpdate={onUpdate}
                     onDelete={onDelete}
+                    onMount={(draw) => { drawControlRef.current = draw; }}
                 />
             </Map>
 
