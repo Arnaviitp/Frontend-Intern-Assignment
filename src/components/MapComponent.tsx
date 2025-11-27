@@ -5,8 +5,6 @@ import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import type { MapGeoJSONFeature } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
-import { Layers, Download, Trash2 } from 'lucide-react';
-import GeocodingSearch from './GeocodingSearch';
 
 // Type definitions for draw events
 interface DrawEvent {
@@ -61,16 +59,31 @@ const WMS_URL = 'https://www.wms.nrw.de/geobasis/wms_nw_dop';
 
 interface MapComponentProps {
     onFeaturesUpdate?: (features: Record<string, MapGeoJSONFeature>) => void;
+    selectedLocation?: { lat: number; lon: number; bbox?: number[] } | null;
 }
 
-export default function MapComponent({ onFeaturesUpdate }: MapComponentProps) {
+export default function MapComponent({ onFeaturesUpdate, selectedLocation }: MapComponentProps) {
     const mapRef = useRef<ComponentRef<typeof Map>>(null);
     const [viewState, setViewState] = useState({
         longitude: 7.4653, // NRW center approx
         latitude: 51.5136,
         zoom: 10
     });
+
+    // Handle location selection from sidebar
+    useEffect(() => {
+        if (selectedLocation && mapRef.current) {
+            mapRef.current.flyTo({
+                center: [selectedLocation.lon, selectedLocation.lat],
+                zoom: selectedLocation.bbox ? 12 : 14,
+                duration: 2000,
+            });
+        }
+    }, [selectedLocation]);
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [showWMS, setShowWMS] = useState(true);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [wmsLayer, setWmsLayer] = useState<'nw_dop_rgb' | 'nw_dop_cir'>('nw_dop_rgb');
 
     // Load features from localStorage on mount
@@ -119,40 +132,9 @@ export default function MapComponent({ onFeaturesUpdate }: MapComponentProps) {
         }
     }, [features, onFeaturesUpdate]);
 
-    const handleLocationSelect = (lat: number, lon: number, bbox?: number[]) => {
-        if (mapRef.current) {
-            mapRef.current.flyTo({
-                center: [lon, lat],
-                zoom: bbox ? 12 : 14,
-                duration: 2000,
-            });
-        }
-    };
-
-    const handleExportFeatures = () => {
-        const geojson = {
-            type: 'FeatureCollection',
-            features: Object.values(features)
-        };
-        const blob = new Blob([JSON.stringify(geojson, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `aoi-features-${new Date().toISOString()}.geojson`;
-        a.click();
-        URL.revokeObjectURL(url);
-    };
-
-    const handleClearAll = () => {
-        if (confirm('Are you sure you want to delete all features?')) {
-            setFeatures({});
-            localStorage.removeItem('aoi-features');
-        }
-    };
-
     return (
         <div className="relative w-full h-full bg-gray-900">
-            <GeocodingSearch onLocationSelect={handleLocationSelect} />
+            {/* GeocodingSearch is now in Sidebar */}
 
             <Map
                 ref={mapRef}
@@ -201,79 +183,17 @@ export default function MapComponent({ onFeaturesUpdate }: MapComponentProps) {
                 />
             </Map>
 
-            {/* Layer Toggle Control */}
-            <div className="absolute bottom-8 left-6 bg-slate-900/90 backdrop-blur-md p-5 rounded-2xl shadow-2xl border border-slate-800 z-10 flex flex-col gap-4 w-80 transition-all hover:border-slate-700">
-                <div className="flex items-center gap-3 text-white font-semibold border-b border-slate-800 pb-3">
-                    <div className="p-2 bg-blue-600/20 rounded-lg">
-                        <Layers className="w-5 h-5 text-blue-500" />
+            {/* Feature Counter Badge */}
+            {Object.keys(features).length > 0 && (
+                <div className="absolute bottom-6 right-6 bg-white rounded-xl shadow-lg border border-gray-200 px-4 py-3 z-10 animate-fadeIn">
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span className="text-sm font-semibold text-gray-700">
+                            {Object.keys(features).length} feature{Object.keys(features).length !== 1 ? 's' : ''} drawn
+                        </span>
                     </div>
-                    <span>Layer Control</span>
                 </div>
-
-                <label className="flex items-center gap-4 cursor-pointer group p-2 hover:bg-slate-800/50 rounded-xl transition-colors">
-                    <div className="relative">
-                        <input
-                            type="checkbox"
-                            checked={showWMS}
-                            onChange={(e) => setShowWMS(e.target.checked)}
-                            className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-900 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                    </div>
-                    <span className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">Satellite Imagery (NRW)</span>
-                </label>
-
-                {showWMS && (
-                    <div className="flex flex-col gap-2 pl-2">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="radio"
-                                name="wmsLayer"
-                                value="nw_dop_rgb"
-                                checked={wmsLayer === 'nw_dop_rgb'}
-                                onChange={() => setWmsLayer('nw_dop_rgb')}
-                                className="text-blue-600 bg-slate-800 border-slate-600 focus:ring-blue-600 focus:ring-2"
-                            />
-                            <span className="text-xs text-slate-300">RGB (Standard)</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="radio"
-                                name="wmsLayer"
-                                value="nw_dop_cir"
-                                checked={wmsLayer === 'nw_dop_cir'}
-                                onChange={() => setWmsLayer('nw_dop_cir')}
-                                className="text-blue-600 bg-slate-800 border-slate-600 focus:ring-blue-600 focus:ring-2"
-                            />
-                            <span className="text-xs text-slate-300">Infrared (CIR)</span>
-                        </label>
-                    </div>
-                )}
-
-                <div className="text-xs text-slate-500 mt-1 bg-slate-950/50 p-3 rounded-lg border border-slate-800/50">
-                    <p className="mb-1">Draw AOIs using the tools at top-left.</p>
-                    <p className="font-semibold text-blue-400">{Object.keys(features).length} feature(s) drawn</p>
-                </div>
-
-                <div className="flex gap-3 mt-2 pt-2 border-t border-slate-800">
-                    <button
-                        onClick={handleExportFeatures}
-                        disabled={Object.keys(features).length === 0}
-                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-blue-600/10 text-blue-500 border border-blue-600/20 text-sm font-medium rounded-xl hover:bg-blue-600 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-                    >
-                        <Download className="w-4 h-4" />
-                        Export
-                    </button>
-                    <button
-                        onClick={handleClearAll}
-                        disabled={Object.keys(features).length === 0}
-                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-rose-600/10 text-rose-500 border border-rose-600/20 text-sm font-medium rounded-xl hover:bg-rose-600 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-                    >
-                        <Trash2 className="w-4 h-4" />
-                        Clear
-                    </button>
-                </div>
-            </div>
+            )}
         </div>
     );
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, X } from 'lucide-react';
+import { X, MapPin } from 'lucide-react';
 
 interface SearchResult {
     display_name: string;
@@ -42,7 +42,7 @@ export default function GeocodingSearch({ onLocationSelect }: GeocodingSearchPro
         const bbox = result.boundingbox.map(parseFloat);
         onLocationSelect(lat, lon, bbox);
         setShowResults(false);
-        setQuery('');
+        setQuery(result.display_name.split(',')[0]); // Show just the first part
         setResults([]);
     };
 
@@ -53,59 +53,70 @@ export default function GeocodingSearch({ onLocationSelect }: GeocodingSearchPro
     };
 
     return (
-        <div className="absolute top-6 left-6 w-80 z-20">
-            <div className="bg-slate-900/90 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-700/50 transition-all duration-300 focus-within:border-blue-500/50 focus-within:ring-4 focus-within:ring-blue-500/10">
-                <div className="flex items-center gap-3 p-3">
-                    <Search className="w-5 h-5 text-slate-400" />
-                    <input
-                        type="text"
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        placeholder="Search location..."
-                        className="flex-1 bg-transparent outline-none text-white placeholder-slate-500 font-medium"
-                    />
-                    {query && (
-                        <button
-                            onClick={() => {
-                                setQuery('');
-                                setResults([]);
-                                setShowResults(false);
-                            }}
-                            className="p-1 hover:bg-slate-800 rounded-full transition-colors"
-                        >
-                            <X className="w-4 h-4 text-slate-400" />
-                        </button>
-                    )}
+        <div className="w-full relative">
+            <div className="flex items-center gap-2 w-full">
+                <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    onFocus={() => query && results.length > 0 && setShowResults(true)}
+                    placeholder="Search location..."
+                    className="flex-1 bg-transparent outline-none text-gray-800 placeholder-gray-400 font-medium text-sm"
+                />
+                {query && (
                     <button
-                        onClick={handleSearch}
-                        disabled={isSearching || !query.trim()}
-                        className="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-900/20"
+                        onClick={() => {
+                            setQuery('');
+                            setResults([]);
+                            setShowResults(false);
+                        }}
+                        className="p-1 hover:bg-gray-100 rounded-full transition-colors"
                     >
-                        {isSearching ? '...' : 'Search'}
+                        <X className="w-4 h-4 text-gray-400 hover:text-gray-600" />
                     </button>
-                </div>
-
-                {showResults && results.length > 0 && (
-                    <div className="border-t border-slate-800 max-h-64 overflow-y-auto custom-scrollbar">
-                        {results.map((result, idx) => (
-                            <button
-                                key={idx}
-                                onClick={() => handleSelectResult(result)}
-                                className="w-full text-left px-4 py-3 hover:bg-slate-800/50 transition-colors border-b border-slate-800/50 last:border-b-0 group"
-                            >
-                                <div className="text-sm font-medium text-slate-200 group-hover:text-white transition-colors">{result.display_name}</div>
-                            </button>
-                        ))}
-                    </div>
-                )}
-
-                {showResults && results.length === 0 && !isSearching && (
-                    <div className="border-t border-slate-800 px-4 py-3 text-sm text-slate-500">
-                        No results found
-                    </div>
                 )}
             </div>
+
+            {showResults && results.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 max-h-80 overflow-y-auto custom-scrollbar z-50 animate-fadeIn">
+                    {results.map((result, idx) => (
+                        <button
+                            key={idx}
+                            onClick={() => handleSelectResult(result)}
+                            className="w-full text-left px-4 py-3 hover:bg-orange-50 transition-colors border-b border-gray-100 last:border-b-0 group flex items-start gap-3"
+                        >
+                            <MapPin className="w-4 h-4 text-orange-400 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium text-gray-700 group-hover:text-orange-600 transition-colors truncate">
+                                    {result.display_name.split(',')[0]}
+                                </div>
+                                <div className="text-xs text-gray-500 truncate">
+                                    {result.display_name.split(',').slice(1).join(', ')}
+                                </div>
+                            </div>
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            {showResults && results.length === 0 && !isSearching && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 px-4 py-3 text-sm text-gray-500 z-50">
+                    <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-gray-400" />
+                        <span>No results found</span>
+                    </div>
+                </div>
+            )}
+
+            {isSearching && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 px-4 py-3 z-50">
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <div className="w-4 h-4 border-2 border-orange-400 border-t-transparent rounded-full animate-spin"></div>
+                        <span>Searching...</span>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
