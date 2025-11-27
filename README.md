@@ -5,7 +5,7 @@ A high-performance, interactive single-page application for viewing satellite im
 ## ✨ Features
 
 ### Core Features
-- ✅ **Interactive Map** with satellite imagery (NRW Digital Orthophotos)
+- ✅ **Interactive Map** with satellite imagery (NRW Digital Orthophotos - RGB & Infrared)
 - ✅ **Drawing Tools** for creating points, lines, and polygons (Areas of Interest)
 - ✅ **Layer Management** UI to toggle WMS layer visibility
 - ✅ **Map Controls** for navigation and full-screen mode

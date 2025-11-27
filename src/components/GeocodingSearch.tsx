@@ -53,7 +53,7 @@ export default function GeocodingSearch({ onLocationSelect }: GeocodingSearchPro
     };
 
     return (
-        <div className="absolute top-6 left-1/2 -translate-x-1/2 w-full max-w-md z-20 px-4 md:px-0">
+        <div className="absolute top-6 left-6 w-80 z-20">
             <div className="bg-slate-900/90 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-700/50 transition-all duration-300 focus-within:border-blue-500/50 focus-within:ring-4 focus-within:ring-blue-500/10">
                 <div className="flex items-center gap-3 p-3">
                     <Search className="w-5 h-5 text-slate-400" />
