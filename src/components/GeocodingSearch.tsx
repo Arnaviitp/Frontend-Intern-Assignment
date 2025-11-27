@@ -53,17 +53,17 @@ export default function GeocodingSearch({ onLocationSelect }: GeocodingSearchPro
     };
 
     return (
-        <div className="absolute top-24 left-4 right-4 md:left-auto md:right-auto md:w-96 z-20">
-            <div className="bg-white/95 backdrop-blur-md rounded-xl shadow-lg border border-gray-200/50">
-                <div className="flex items-center gap-2 p-3">
-                    <Search className="w-5 h-5 text-gray-400" />
+        <div className="absolute top-6 left-1/2 -translate-x-1/2 w-full max-w-md z-20 px-4 md:px-0">
+            <div className="bg-slate-900/90 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-700/50 transition-all duration-300 focus-within:border-blue-500/50 focus-within:ring-4 focus-within:ring-blue-500/10">
+                <div className="flex items-center gap-3 p-3">
+                    <Search className="w-5 h-5 text-slate-400" />
                     <input
                         type="text"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         onKeyPress={handleKeyPress}
-                        placeholder="Search for a location..."
-                        className="flex-1 bg-transparent outline-none text-gray-800 placeholder-gray-400"
+                        placeholder="Search location..."
+                        className="flex-1 bg-transparent outline-none text-white placeholder-slate-500 font-medium"
                     />
                     {query && (
                         <button
@@ -72,36 +72,36 @@ export default function GeocodingSearch({ onLocationSelect }: GeocodingSearchPro
                                 setResults([]);
                                 setShowResults(false);
                             }}
-                            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                            className="p-1 hover:bg-slate-800 rounded-full transition-colors"
                         >
-                            <X className="w-4 h-4 text-gray-400" />
+                            <X className="w-4 h-4 text-slate-400" />
                         </button>
                     )}
                     <button
                         onClick={handleSearch}
                         disabled={isSearching || !query.trim()}
-                        className="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-900/20"
                     >
-                        {isSearching ? 'Searching...' : 'Search'}
+                        {isSearching ? '...' : 'Search'}
                     </button>
                 </div>
 
                 {showResults && results.length > 0 && (
-                    <div className="border-t border-gray-200 max-h-64 overflow-y-auto">
+                    <div className="border-t border-slate-800 max-h-64 overflow-y-auto custom-scrollbar">
                         {results.map((result, idx) => (
                             <button
                                 key={idx}
                                 onClick={() => handleSelectResult(result)}
-                                className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0"
+                                className="w-full text-left px-4 py-3 hover:bg-slate-800/50 transition-colors border-b border-slate-800/50 last:border-b-0 group"
                             >
-                                <div className="text-sm font-medium text-gray-800">{result.display_name}</div>
+                                <div className="text-sm font-medium text-slate-200 group-hover:text-white transition-colors">{result.display_name}</div>
                             </button>
                         ))}
                     </div>
                 )}
 
                 {showResults && results.length === 0 && !isSearching && (
-                    <div className="border-t border-gray-200 px-4 py-3 text-sm text-gray-500">
+                    <div className="border-t border-slate-800 px-4 py-3 text-sm text-slate-500">
                         No results found
                     </div>
                 )}
