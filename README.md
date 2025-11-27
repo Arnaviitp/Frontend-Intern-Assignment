@@ -294,11 +294,3 @@ To make this production-ready, I would add:
 ## 📄 License
 
 This project is open source and available under the MIT License.
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome!
-
-## 📞 Support
-
-For support, email [support@example.com] or open an issue in the repository.
