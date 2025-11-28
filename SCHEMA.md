@@ -73,6 +73,7 @@ For a production system with a backend database:
 ### Entity Descriptions
 
 #### User
+
 - **Purpose:** Store user authentication and profile data
 - **Key Fields:**
   - `id`: UUID primary key
@@ -81,6 +82,7 @@ For a production system with a backend database:
   - `created_at`: Account creation timestamp
 
 #### AOI (Area of Interest)
+
 - **Purpose:** Store geographic features drawn by users
 - **Key Fields:**
   - `id`: UUID primary key
@@ -92,6 +94,7 @@ For a production system with a backend database:
   - `deleted_at`: Soft delete support
 
 #### Tag
+
 - **Purpose:** Flexible metadata tagging system for AOIs
 - **Key Fields:**
   - `id`: UUID primary key
@@ -102,6 +105,7 @@ For a production system with a backend database:
 ### Database Recommendations
 
 **PostgreSQL with PostGIS** is highly recommended for this application because:
+
 - Native support for geographic data types and spatial indexing (GiST indexes)
 - Powerful geospatial queries (intersections, buffers, distance calculations)
 - JSONB support for flexible metadata storage
@@ -111,9 +115,9 @@ For a production system with a backend database:
 
 ```sql
 -- Find all AOIs within a bounding box
-SELECT * FROM aoi 
+SELECT * FROM aoi
 WHERE ST_Intersects(
-  geometry::geometry, 
+  geometry::geometry,
   ST_MakeEnvelope(west, south, east, north, 4326)
 );
 

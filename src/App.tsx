@@ -10,7 +10,9 @@ interface LocationState {
 
 function App() {
   const [selectedLocation, setSelectedLocation] = useState<LocationState | null>(null);
-  const [drawMode, setDrawMode] = useState<'polygon' | 'rectangle' | 'circle' | 'point' | null>(null);
+  const [drawMode, setDrawMode] = useState<'polygon' | 'rectangle' | 'circle' | 'point' | null>(
+    null
+  );
   const [showWMS, setShowWMS] = useState(true);
   const [wmsLayer, setWmsLayer] = useState<'nw_dop_rgb' | 'nw_dop_cir'>('nw_dop_rgb');
 

@@ -10,6 +10,7 @@ This application is primarily a client-side application with enhanced local stat
 **Base URL:** `https://www.wms.nrw.de/geobasis/wms_nw_dop`
 
 #### Get Map Tiles
+
 - **Method:** GET
 - **Parameters:**
   - `bbox`: Bounding box in EPSG:3857 format
@@ -24,6 +25,7 @@ This application is primarily a client-side application with enhanced local stat
   - `layers`: `nw_dop_rgb` (RGB) or `nw_dop_cir` (Infrared)
 
 **Example Request:**
+
 ```
 https://www.wms.nrw.de/geobasis/wms_nw_dop?bbox=830000,6650000,831000,6651000&format=image/png&service=WMS&version=1.1.1&request=GetMap&srs=EPSG:3857&transparent=true&width=256&height=256&layers=nw_dop_rgb
 ```
@@ -31,6 +33,7 @@ https://www.wms.nrw.de/geobasis/wms_nw_dop?bbox=830000,6650000,831000,6651000&fo
 **Response:** PNG image tile
 
 **Available Layers:**
+
 - `nw_dop_rgb` - Standard RGB color orthophotos
 - `nw_dop_cir` - Color Infrared orthophotos
 
@@ -40,6 +43,7 @@ https://www.wms.nrw.de/geobasis/wms_nw_dop?bbox=830000,6650000,831000,6651000&fo
 **Base URL:** `https://nominatim.openstreetmap.org`
 
 #### Search for Location
+
 - **Method:** GET
 - **Endpoint:** `/search`
 - **Parameters:**
@@ -48,11 +52,13 @@ https://www.wms.nrw.de/geobasis/wms_nw_dop?bbox=830000,6650000,831000,6651000&fo
   - `limit`: Number of results (default: 5)
 
 **Example Request:**
+
 ```
 https://nominatim.openstreetmap.org/search?format=json&q=Berlin&limit=5
 ```
 
 **Response:**
+
 ```json
 [
   {
@@ -71,6 +77,7 @@ https://nominatim.openstreetmap.org/search?format=json&q=Berlin&limit=5
 The application manages the following state locally:
 
 ### Map View State
+
 ```typescript
 {
   longitude: number,  // Center longitude (default: 7.4653)
@@ -80,14 +87,17 @@ The application manages the following state locally:
 ```
 
 ### Drawn Features
+
 ```typescript
-Record<string, MapGeoJSONFeature>
+Record<string, MapGeoJSONFeature>;
 ```
+
 Features are stored in browser memory and persisted to localStorage with their IDs as keys.
 
 **localStorage Key:** `aoi-features`
 
 **Example Structure:**
+
 ```json
 {
   "feature-uuid-1": {
@@ -103,6 +113,7 @@ Features are stored in browser memory and persisted to localStorage with their I
 ```
 
 ### Layer Visibility
+
 ```typescript
 {
   showWMS: boolean,    // Toggle satellite imagery layer
@@ -111,33 +122,38 @@ Features are stored in browser memory and persisted to localStorage with their I
 ```
 
 ### Active Tab
+
 ```typescript
 {
-  activeTab: 'define' | 'saved' | 'export'  // Current sidebar tab
+  activeTab: 'define' | 'saved' | 'export'; // Current sidebar tab
 }
 ```
 
 ### Recent Searches
+
 ```typescript
 string[]  // Array of recent search queries
 ```
+
 Stored in localStorage for quick access.
 
 ## Component Props API
 
 ### MapComponent Props
+
 ```typescript
 interface MapComponentProps {
   onFeaturesUpdate?: (features: Record<string, MapGeoJSONFeature>) => void;
-  selectedLocation?: { 
-    lat: number; 
-    lon: number; 
-    bbox?: number[] 
+  selectedLocation?: {
+    lat: number;
+    lon: number;
+    bbox?: number[];
   } | null;
 }
 ```
 
 ### Sidebar Props
+
 ```typescript
 interface SidebarProps {
   onLocationSelect: (lat: number, lon: number, bbox?: number[]) => void;
@@ -145,6 +161,7 @@ interface SidebarProps {
 ```
 
 ### GeocodingSearch Props
+
 ```typescript
 interface GeocodingSearchProps {
   onLocationSelect: (lat: number, lon: number, bbox?: number[]) => void;
@@ -158,7 +175,9 @@ For production deployment, implement the following REST API:
 ### Authentication
 
 #### POST /api/auth/register
+
 Register a new user
+
 ```json
 Request:
 {
@@ -175,7 +194,9 @@ Response:
 ```
 
 #### POST /api/auth/login
+
 User login
+
 ```json
 Request:
 {
@@ -193,7 +214,9 @@ Response:
 ### Areas of Interest (AOI)
 
 #### POST /api/aoi
+
 Create a new Area of Interest
+
 ```json
 Request:
 {
@@ -216,7 +239,9 @@ Response:
 ```
 
 #### GET /api/aoi
+
 List all AOIs for the authenticated user
+
 ```
 Query Parameters:
 - page: number (default: 1)
@@ -237,7 +262,9 @@ Response:
 ```
 
 #### GET /api/aoi/:id
+
 Retrieve a specific AOI
+
 ```json
 Response:
 {
@@ -254,7 +281,9 @@ Response:
 ```
 
 #### PUT /api/aoi/:id
+
 Update an existing AOI
+
 ```json
 Request:
 {
@@ -271,7 +300,9 @@ Response:
 ```
 
 #### DELETE /api/aoi/:id
+
 Delete an AOI
+
 ```
 Response: 204 No Content
 ```
@@ -279,7 +310,9 @@ Response: 204 No Content
 ### Export
 
 #### GET /api/aoi/:id/export
+
 Export AOI in various formats
+
 ```
 Query Parameters:
 - format: 'geojson' | 'shapefile' | 'kml'
@@ -291,7 +324,9 @@ Response:
 ```
 
 #### POST /api/aoi/batch-export
+
 Export multiple AOIs
+
 ```json
 Request:
 {
@@ -309,7 +344,9 @@ Response:
 ### Analytics
 
 #### GET /api/analytics/summary
+
 Get user analytics
+
 ```json
 Response:
 {
@@ -329,12 +366,15 @@ All API endpoints return consistent error responses:
   "error": {
     "code": "ERROR_CODE",
     "message": "Human-readable error message",
-    "details": { /* Optional additional details */ }
+    "details": {
+      /* Optional additional details */
+    }
   }
 }
 ```
 
 **Common Error Codes:**
+
 - `400` - Bad Request (validation errors)
 - `401` - Unauthorized (missing/invalid token)
 - `403` - Forbidden (insufficient permissions)
@@ -345,6 +385,7 @@ All API endpoints return consistent error responses:
 ## Rate Limiting
 
 Proposed rate limits for production:
+
 - Authentication: 5 requests/minute
 - AOI CRUD: 100 requests/minute
 - Export: 10 requests/minute
